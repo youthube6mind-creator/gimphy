@@ -1,1 +1,72 @@
+# P2P Manual Reconcile Tool Configuration
 
+# Valid column headers for the Excel input file
+valid_column_headers:
+  - 'DETAIL_RECORD_ID'
+  - 'PAYMENT_ID'
+  - 'ACCTNBR'
+  - 'RTXNNBR'
+  - 'NETWORK_ID'
+  - 'TRAN_TYPE'
+  - 'UPDATE_DETAIL_RECORD'
+  - 'UPDATE_PAYMENT'
+  - 'UPDATE_RTXN'
+  - 'UPDATE_VISA'
+  - 'UPDATE_MC'
+
+# SQL queries for updating reconciliation dates
+sql_queries:
+  update_detail_record: >-
+    UPDATE DetailRecord 
+    SET ReconcileDate = ? 
+    WHERE Id = ? AND ReconcileDate IS NULL
+
+  update_payment: >-
+    UPDATE Payment 
+    SET ReconcileDate = ? 
+    WHERE Id = ? AND ReconcileDate IS NULL
+
+  insert_rtxn_recon_date: >-
+    INSERT INTO rtxnentityattrib
+    (
+      acctnbr,
+      rtxnnbr,
+      entityattribcd,
+      rtxnentityattribvalue,
+      datelastmaint
+    )
+    SELECT
+      ?,
+      ?,
+      'RECONDATE',
+      ?,
+      SYSDATE
+    FROM DUAL
+    WHERE NOT EXISTS(
+      SELECT 1
+      FROM RTXNENTITYATTRIB
+      WHERE ACCTNBR = ?
+      AND RTXNNBR = ?
+      AND ENTITYATTRIBCD = 'RECONDATE'
+    )
+
+  update_mc_recon: >-
+    UPDATE osiupdate.p2p_recon_mc_zeldly
+    SET recon_date = ?
+    WHERE p2p_Tran_Id = ? AND recon_date IS NULL
+
+  update_visa_recon: >-
+    UPDATE osiupdate.p2p_recon_visa_rw3
+    SET recon_date = ?
+    WHERE Tran_Id = ? AND Tran_Code = ? AND recon_date IS NULL
+
+# Database connection parameters
+database_config:
+  p2p_autocommit: false
+  dna_autocommit: false
+
+# Output file configuration
+output_config:
+  file_prefix: "P2P_RECON_MANUAL_UPDATE_"
+  file_extension: ".txt"
+  separator_line: "-" # Will be repeated 150 times
