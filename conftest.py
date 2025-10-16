@@ -10,6 +10,7 @@ TEST_BASE_PATH = pathlib.Path(os.path.dirname(__file__))
 # Script arguments for testing
 SCRIPT_ARGUMENTS = {
     str(AppWorxEnum.TNS_SERVICE_NAME): "DNATST3",
+    str(AppWorxEnum.CONFIG_FILE): str(TEST_BASE_PATH / "config.yaml"),
     str(AppWorxEnum.FULL_CLEAN_YN): "N",
     str(AppWorxEnum.DAYS_BACK): "3",
     str(AppWorxEnum.RPT_ONLY_YN): "Y",

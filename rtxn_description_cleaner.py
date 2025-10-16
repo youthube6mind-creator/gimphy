@@ -17,6 +17,7 @@ class AppWorxEnum(Enum):
     """Define AppWorx arguments here to avoid hard-coded strings."""
 
     TNS_SERVICE_NAME = auto()
+    CONFIG_FILE = auto()
     FULL_CLEAN_YN = auto()
     DAYS_BACK = auto()
     RPT_ONLY_YN = auto()
@@ -249,6 +250,9 @@ def parse_args(apwx: Apwx) -> Apwx:
     parser = apwx.parser
     parser.add_arg(str(AppWorxEnum.TNS_SERVICE_NAME), type=str, required=True)
     parser.add_arg(
+        str(AppWorxEnum.CONFIG_FILE), type=r"(\.yml|\.yaml)$", required=True
+    )
+    parser.add_arg(
         str(AppWorxEnum.FULL_CLEAN_YN), choices=["Y", "N"], default="N", required=False
     )
     parser.add_arg(
@@ -272,16 +276,16 @@ def dna_db_connect(apwx) -> DbConnection:
     return apwx.db_connect(autocommit=False)
 
 
-def get_config() -> dict:
+def get_config(apwx: Apwx) -> dict:
     """Loads config YAML into a dictionary."""
-    with open("config.yaml", "r") as f:
+    with open(apwx.args.CONFIG_FILE, "r") as f:
         return yaml.safe_load(f)
 
 
 def initialize(apwx) -> ScriptData:
     """Initialize objects required by the script to call external systems."""
     dbh = dna_db_connect(apwx)
-    config = get_config()
+    config = get_config(apwx)
     
     # Create output file path
     output_path = Path(apwx.args.OUTPUT_FILE_PATH)
