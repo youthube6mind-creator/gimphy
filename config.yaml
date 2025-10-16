@@ -1,1 +1,40 @@
-
+queries:
+  # Get external transaction descriptions that need cleaning (full clean)
+  get_ext_full: |
+    SELECT extrtxndescnbr, extrtxndesctext
+    FROM extrtxndesc
+    WHERE extrtxndesctext != REGEXP_REPLACE(extrtxndesctext,'[^0-9A-Za-z !@#\$\%*\(\)-_=+{}|\\;:,.<>/?^&''`~"]', ' ')
+  
+  # Get external transaction descriptions that need cleaning (incremental)
+  get_ext_incremental: |
+    SELECT extrtxndescnbr, extrtxndesctext
+    FROM extrtxndesc
+    WHERE extrtxndesctext != REGEXP_REPLACE(extrtxndesctext,'[^0-9A-Za-z !@#\$\%*\(\)-_=+{}|\\;:,.<>/?^&''`~"]', ' ')
+    AND datelastmaint > sysdate - :days_back
+  
+  # Get internal transaction descriptions that need cleaning (full clean)
+  get_int_full: |
+    SELECT intrtxndescnbr, intrtxndesctext
+    FROM intrtxndesc
+    WHERE intrtxndesctext != REGEXP_REPLACE(intrtxndesctext,'[^0-9A-Za-z !@#\$\%*\(\)-_=+{}|\\;:,.<>/?^&''`~"]', ' ')
+  
+  # Get internal transaction descriptions that need cleaning (incremental)
+  get_int_incremental: |
+    SELECT intrtxndescnbr, intrtxndesctext
+    FROM intrtxndesc
+    WHERE intrtxndesctext != REGEXP_REPLACE(intrtxndesctext,'[^0-9A-Za-z !@#\$\%*\(\)-_=+{}|\\;:,.<>/?^&''`~"]', ' ')
+    AND datelastmaint > sysdate - :days_back
+  
+  # Update external transaction descriptions
+  update_ext: |
+    UPDATE extrtxndesc
+    SET extrtxndesctext = :new_text,
+        datelastmaint = sysdate
+    WHERE extrtxndescnbr = :desc_nbr
+  
+  # Update internal transaction descriptions
+  update_int: |
+    UPDATE intrtxndesc
+    SET intrtxndesctext = :new_text,
+        datelastmaint = sysdate
+    WHERE intrtxndescnbr = :desc_nbr
